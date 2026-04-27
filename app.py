@@ -33,7 +33,7 @@ def load_tables():
     return fact, dims
 
 fact, dims = load_tables()
-xd=fact.shape
+
 # ----------------------- BASE PARA FILTROS -----------------------------
 def build_filter_base(fact, dims):
     df = fact.merge(dims["aerolinea"], on="dim_aerolinea_id", how="inner")
@@ -82,7 +82,7 @@ with tab1:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Retraso salida promedio", f"{xd} min")
+    col1.metric("Retraso salida promedio", f"{1} min")
     col2.metric("Retraso llegada promedio", f"{df['ArrDelay'].mean():.1f} min")
     col3.metric("OTP", f"{((df['ArrDelay'] <= 15).mean()*100):.1f} %")
     col4.metric("Cancelaciones", f"{(df['Cancelled'].mean()*100):.1f} %")
