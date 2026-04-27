@@ -115,10 +115,10 @@ Tabs:
 KPIs:
 
 * OTP
-* Retraso promedio
-* Retraso acumulado
-* % cancelaciones
-* % vuelos afectados
+* Retraso promedio en minutos
+* Retraso acumulado en horas
+* Porcentaje de cancelaciones (%)
+* Porcentaje de vuelos afectados (%)
 
 ---
 
