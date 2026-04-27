@@ -85,7 +85,7 @@ dim_origen
 dim_ruta
 dim_vuelo
 
-Cada dimensión contiene atributos descriptivos y su clave surrogate.
+Cada dimensión contiene atributos descriptivos y su clave.
 
 ---
 
