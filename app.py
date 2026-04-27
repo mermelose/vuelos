@@ -81,7 +81,7 @@ with tab1:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Retraso salida promedio", f"{df['DepDelay'].mean():.1f} min")
+    col1.metric("Retraso salida promedio", f"{df['DepDelay'].count():.1f} min")
     col2.metric("Retraso llegada promedio", f"{df['ArrDelay'].mean():.1f} min")
     col3.metric("OTP", f"{((df['ArrDelay'] <= 15).mean()*100):.1f} %")
     col4.metric("Cancelaciones", f"{(df['Cancelled'].mean()*100):.1f} %")
