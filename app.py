@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import glob
 
-st.set_page_config(page_title="✈️ Vuela Alto Fabo", layout="wide", page_icon="✈️")
+st.set_page_config(page_title="Vuelos", layout="wide", page_icon="✈️")
 
 BASE_PATH = "datamart"
 SAMPLE_SIZE = 50000
@@ -49,7 +49,7 @@ def build_filter_base(fact, dims):
 base_df = build_filter_base(fact, dims)
 
 # ----------------------- SIDEBAR -----------------------------
-st.sidebar.title("🔍 Filtros")
+st.sidebar.title("Filtros")
 aerolineas = st.sidebar.multiselect("Aerolínea", base_df["Airline"].unique())
 origenes = st.sidebar.multiselect("Origen", base_df["Origin"].unique())
 destinos = st.sidebar.multiselect("Destino", base_df["Dest"].unique())
@@ -66,17 +66,17 @@ def apply_user_filters(df):
 
 # ------------------------ TABS --------------------------
 tab1, tab2, tab3, tab4 = st.tabs([
-    "🏠 Resumen Ejecutivo",
-    "✈️ Puntualidad y Retrasos",
-    "🛫 Aeropuertos Críticos",
-    "❌ Cancelaciones y Disrupciones"
+    "Resumen Ejecutivo",
+    "Puntualidad y Retrasos",
+    "Aeropuertos Críticos",
+    "Cancelaciones y Disrupciones"
 ])
 
 # =====================================================================
 # TAB 1
 # =====================================================================
 with tab1:
-    st.header("🏠 Resumen Ejecutivo del Desempeño Operacional")
+    st.header("Resumen Ejecutivo del Desempeño Operacional")
     df = apply_user_filters(base_df.copy())
 
     col1, col2, col3, col4 = st.columns(4)
@@ -122,7 +122,7 @@ with tab2:
 # TAB 3
 # =====================================================================
 with tab3:
-    st.header("🛫 Aeropuertos con Mayor Retraso")
+    st.header("Aeropuertos con Mayor Retraso")
     df = fact.merge(dims["origen"], on="dim_origen_id", how="inner")
     df = df.rename(columns={"DepDelayMinutes": "DepDelay"})
     df = df.merge(dims["aerolinea"], on="dim_aerolinea_id", how="inner")
@@ -159,7 +159,7 @@ with tab3:
 # TAB 4
 # =====================================================================
 with tab4:
-    st.header("❌ Cancelaciones y Disrupciones")
+    st.header("Cancelaciones y Disrupciones")
     df = fact.merge(dims["aerolinea"], on="dim_aerolinea_id", how="inner")
     df = df.rename(columns={"ArrDelayMinutes": "ArrDelay"})
     df = df.merge(dims["origen"], on="dim_origen_id", how="inner")
@@ -178,7 +178,7 @@ with tab4:
         y="Airline",
         orientation="h",
         labels={
-            "Cancelled": "% cancelaciones",
+            "Cancelled": "Porcentaje de cancelaciones (%)",
             "Airline": "Aerolínea"
         },
         category_orders={"Airline": order}
