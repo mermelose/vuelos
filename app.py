@@ -6,7 +6,7 @@ import glob
 st.set_page_config(page_title="✈️ Vuela Alto Fabo", layout="wide", page_icon="✈️")
 
 BASE_PATH = "datamart"
-SAMPLE_SIZE = 5000
+SAMPLE_SIZE = 50000
 
 # ----------------------- CARGA -----------------------------
 @st.cache_data
