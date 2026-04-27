@@ -2,9 +2,7 @@
 
 ## 1. Descripción
 
-Este repositorio implementa un datamart dimensional basado en datos históricos de vuelos (2018 a 2022). El objetivo es analizar puntualidad, retrasos, cancelaciones y desempeño operacional mediante un dashboard interactivo.
-
-El proyecto sigue un enfoque de Business Intelligence sobre un esquema estrella optimizado para consultas analíticas.
+Este repositorio implementa un datamart dimensional basado en datos históricos de vuelos (2018 a 2022). Permite analizar puntualidad, retrasos, cancelaciones y desempeño operacional mediante un dashboard interactivo.
 
 ---
 
@@ -16,15 +14,15 @@ El proyecto sigue un enfoque de Business Intelligence sobre un esquema estrella 
 ├── datamart_flights_databricks_orc.ipynb
 ├── requirements.txt
 └── datamart/
-    ├── dim_aerolinea/
-    ├── dim_avion/
-    ├── dim_destino/
-    ├── dim_fecha/
-    ├── dim_hora/
-    ├── dim_origen/
-    ├── dim_ruta/
-    ├── dim_vuelo/
-    └── fact_vuelos/
+    ├── dim_aerolinea/dim_aerolinea.parquet
+    ├── dim_avion/dim_avion.parquet
+    ├── dim_destino/dim_destino.parquet
+    ├── dim_fecha/dim_fecha.parquet
+    ├── dim_hora/dim_hora.parquet
+    ├── dim_origen/dim_origen.parquet
+    ├── dim_ruta/dim_ruta.parquet
+    ├── dim_vuelo/dim_vuelo.parquet
+    └── fact_vuelos/fact_vuelos.parquet
 ```
 
 ---
@@ -33,32 +31,35 @@ El proyecto sigue un enfoque de Business Intelligence sobre un esquema estrella 
 
 Fuente: Flight Delay Dataset 2018–2022
 
+Archivos originales:
+
+* Combined_Flights_2018.parquet
+* Combined_Flights_2019.parquet
+* Combined_Flights_2020.parquet
+* Combined_Flights_2021.parquet
+* Combined_Flights_2022.parquet
+
 Acceso:
 https://drive.google.com/drive/folders/1CF7CDKkXqdKbD1jDnxES2CT8WT85z97C
-
-Contenido:
-
-* Datos históricos de vuelos
-* Horarios programados y reales
-* Retrasos, cancelaciones y desvíos
-* Información de aerolíneas, rutas y aeropuertos
 
 ---
 
 ## 4. Modelo de datos
 
-Se utiliza un esquema estrella.
+Esquema estrella con una tabla de hechos y múltiples dimensiones.
 
 ### Tabla de hechos
 
 fact_vuelos
 
-Contiene métricas operativas:
+Métricas:
 
-* retrasos
-* tiempos de vuelo
-* cancelaciones
-* desvíos
+* DepDelayMinutes
+* ArrDelayMinutes
+* AirTime
+* Distance
+* Cancelled
+* Diverted
 
 Claves:
 
@@ -71,75 +72,20 @@ Claves:
 * dim_ruta_id
 * dim_aerolinea_id
 
-Métricas principales:
-
-* DepDelayMinutes
-* ArrDelayMinutes
-* AirTime
-* Distance
-* Cancelled
-* Diverted
-
 ---
 
 ### Dimensiones
 
 dim_aerolinea
-
-* Airline
-* dim_aerolinea_id
-
 dim_avion
-
-* Tail_Number
-* dim_avion_id
-
 dim_destino
-
-* Dest
-* DestCityName
-* DestState
-* DestStateName
-* dim_destino_id
-
 dim_fecha
-
-* FlightDate
-* Year
-* Quarter
-* Month
-* DayOfMonth
-* DayOfWeek
-* dim_fecha_id
-
 dim_hora
-
-* hhmm
-* Hora
-* Minuto
-* TimeBlock
-* dim_hora_id
-
 dim_origen
-
-* Origin
-* OriginCityName
-* OriginState
-* OriginStateName
-* dim_origen_id
-
 dim_ruta
-
-* Origin
-* Dest
-* DistanceGroup
-* dim_ruta_id
-
 dim_vuelo
 
-* Flight_Number_Marketing_Airline
-* Flight_Number_Operating_Airline
-* dim_vuelo_id
+Cada dimensión contiene atributos descriptivos y su clave surrogate.
 
 ---
 
@@ -148,16 +94,9 @@ dim_vuelo
 Flujo:
 
 1. Ingesta
-   Descarga y carga del dataset original
-
-2. Transformación
-   Limpieza, tipificación y normalización
-
-3. Modelado
-   Construcción del esquema estrella
-
-4. Almacenamiento
-   Archivos en formato Parquet
+2. Limpieza y transformación
+3. Modelado dimensional
+4. Almacenamiento en Parquet
 
 ---
 
@@ -166,47 +105,32 @@ Flujo:
 Archivo: app.py
 Framework: Streamlit
 
-### Funcionalidades
-
-Filtros:
-
-* Aerolínea
-* Origen
-* Destino
-
 Tabs:
 
-1. Resumen Ejecutivo
+* Resumen Ejecutivo
+* Puntualidad por aerolínea
+* Aeropuertos críticos
+* Cancelaciones y disrupciones
 
-   * Retraso promedio salida
-   * Retraso promedio llegada
-   * OTP
-   * % cancelaciones
+KPIs:
 
-2. Puntualidad por aerolínea
-
-   * Ranking de retrasos promedio
-
-3. Aeropuertos críticos
-
-   * Retraso acumulado por origen
-
-4. Cancelaciones y disrupciones
-
-   * % cancelaciones por aerolínea
-   * % vuelos afectados
+* OTP
+* Retraso promedio
+* Retraso acumulado
+* % cancelaciones
+* % vuelos afectados
 
 ---
 
-## 7. Ejecución
+## 7. Ejecución rápida
 
-### 1. Instalar dependencias
+Instalar dependencias:
 
 ```
 pip install -r requirements.txt
 ```
 
-### 2. Ejecutar aplicación
+Ejecutar app:
 
 ```
 streamlit run app.py
@@ -214,22 +138,72 @@ streamlit run app.py
 
 ---
 
-## 8. Decisiones técnicas
+## 8. Sección opcional: generación del datamart desde cero
 
-* Formato Parquet para eficiencia en lectura
-* Muestreo de datos para mejorar rendimiento en dashboard
-* Uso de pandas para ETL
-* Visualización con Plotly
-* Caché con Streamlit para evitar recargas innecesarias
+Usa esta sección si no tienes la carpeta datamart creada.
+
+### Paso 1. Descargar dataset
+
+Descarga los archivos desde Google Drive:
+
+* Combined_Flights_2018.parquet
+* Combined_Flights_2019.parquet
+* Combined_Flights_2020.parquet
+* Combined_Flights_2021.parquet
+* Combined_Flights_2022.parquet
+
+Guárdalos en una carpeta local o en tu entorno de Databricks.
+
+---
+
+### Paso 2. Ejecutar notebook en Databricks
+
+Archivo:
+datamart_flights_databricks_orc.ipynb
+
+Acciones:
+
+* Cargar los archivos Combined_Flights
+* Ejecutar limpieza y transformación
+* Construir dimensiones
+* Construir tabla de hechos
+* Exportar resultados en formato Parquet
+
+Salida esperada:
+
+```
+datamart/
+```
+
+con todas las tablas:
+
+* dimensiones
+* fact_vuelos particionada
 
 ---
 
-## 9. KPIs implementados
+### Paso 3. Descargar datamart
 
-* On-Time Performance (OTP)
-* Retraso promedio
-* Retraso acumulado
-* Tasa de cancelación
-* Vuelos afectados
+Desde Databricks:
+
+* Exportar la carpeta datamart
+* Copiarla al root del proyecto
+
+Estructura final requerida:
+
+```
+/datamart/...
+```
 
 ---
+
+### Paso 4. Ejecutar aplicación
+
+Una vez que exista la carpeta datamart:
+
+```
+streamlit run app.py
+```
+
+---
+
