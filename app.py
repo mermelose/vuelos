@@ -31,7 +31,7 @@ def load_tables():
     return fact, dims
 
 fact, dims = load_tables()
-xd = type(fact)
+xd = fact.shape
 # ----------------------- BASE PARA FILTROS -----------------------------
 def build_filter_base(fact, dims):
     df = fact.merge(dims["aerolinea"], on="dim_aerolinea_id", how="inner")
