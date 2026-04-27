@@ -19,6 +19,7 @@ def load_tables():
         if len(df) > SAMPLE_SIZE:
             df = df.sample(SAMPLE_SIZE, random_state=42)
         dfs.append(df)
+    xd = dfs.shape
 
     fact = pd.concat(dfs, ignore_index=True)
 
@@ -81,7 +82,7 @@ with tab1:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Retraso salida promedio", f"{df.shape} min")
+    col1.metric("Retraso salida promedio", f"{xd} min")
     col2.metric("Retraso llegada promedio", f"{df['ArrDelay'].mean():.1f} min")
     col3.metric("OTP", f"{((df['ArrDelay'] <= 15).mean()*100):.1f} %")
     col4.metric("Cancelaciones", f"{(df['Cancelled'].mean()*100):.1f} %")
