@@ -19,10 +19,10 @@ def load_tables():
         if len(df) > SAMPLE_SIZE:
             df = df.sample(SAMPLE_SIZE, random_state=42)
         dfs.append(df)
-    xd = dfs.shape
+
 
     fact = pd.concat(dfs, ignore_index=True)
-
+    xd=fact.shape
     dims = {
         "aerolinea": pd.read_parquet(f"{BASE_PATH}/dim_aerolinea/dim_aerolinea.parquet"),
         "origen": pd.read_parquet(f"{BASE_PATH}/dim_origen/dim_origen.parquet"),
@@ -30,9 +30,9 @@ def load_tables():
         "fecha": pd.read_parquet(f"{BASE_PATH}/dim_fecha/dim_fecha.parquet")
     }
 
-    return fact, dims
+    return fact, dims,xd
 
-fact, dims = load_tables()
+fact, dims,xd = load_tables()
 
 # ----------------------- BASE PARA FILTROS -----------------------------
 def build_filter_base(fact, dims):
