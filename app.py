@@ -22,7 +22,7 @@ def load_tables():
 
 
     fact = pd.concat(dfs, ignore_index=True)
-    xd=fact.shape
+    
     dims = {
         "aerolinea": pd.read_parquet(f"{BASE_PATH}/dim_aerolinea/dim_aerolinea.parquet"),
         "origen": pd.read_parquet(f"{BASE_PATH}/dim_origen/dim_origen.parquet"),
@@ -30,10 +30,10 @@ def load_tables():
         "fecha": pd.read_parquet(f"{BASE_PATH}/dim_fecha/dim_fecha.parquet")
     }
 
-    return fact, dims,xd
+    return fact, dims
 
-fact, dims,xd = load_tables()
-
+fact, dims = load_tables()
+xd=fact.shape
 # ----------------------- BASE PARA FILTROS -----------------------------
 def build_filter_base(fact, dims):
     df = fact.merge(dims["aerolinea"], on="dim_aerolinea_id", how="inner")
