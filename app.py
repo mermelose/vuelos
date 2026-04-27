@@ -6,7 +6,7 @@ import glob
 st.set_page_config(page_title="Vuelos", layout="wide", page_icon="✈️")
 
 BASE_PATH = "datamart"
-SAMPLE_SIZE = 5000
+SAMPLE_SIZE = 50000
 
 # ----------------------- CARGA -----------------------------
 @st.cache_data
@@ -20,9 +20,8 @@ def load_tables():
             df = df.sample(SAMPLE_SIZE, random_state=42)
         dfs.append(df)
 
-
     fact = pd.concat(dfs, ignore_index=True)
-    
+
     dims = {
         "aerolinea": pd.read_parquet(f"{BASE_PATH}/dim_aerolinea/dim_aerolinea.parquet"),
         "origen": pd.read_parquet(f"{BASE_PATH}/dim_origen/dim_origen.parquet"),
@@ -82,7 +81,7 @@ with tab1:
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Retraso salida promedio", f"{1} min")
+    col1.metric("Retraso salida promedio", f"{df['DepDelay'].mean():.1f} min")
     col2.metric("Retraso llegada promedio", f"{df['ArrDelay'].mean():.1f} min")
     col3.metric("OTP", f"{((df['ArrDelay'] <= 15).mean()*100):.1f} %")
     col4.metric("Cancelaciones", f"{(df['Cancelled'].mean()*100):.1f} %")
