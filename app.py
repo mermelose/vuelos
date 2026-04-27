@@ -102,8 +102,19 @@ with tab2:
 
     airline_delay = df.groupby("Airline")["ArrDelay"].mean().reset_index()
 
-    fig = px.bar(airline_delay, x="ArrDelay", y="Airline", orientation='h',
-                 labels={"ArrDelay": "Retraso promedio llegada (min)", "Airline": "Aerolínea"})
+    fig = px.bar(
+    airline_delay.sort_values("ArrDelay"),
+    x="ArrDelay",
+    y="Airline",
+    orientation="h",
+    labels={
+        "ArrDelay": "Retraso promedio llegada (min)",
+        "Airline": "Aerolínea"
+    },
+    category_orders={
+        "Airline": airline_delay.sort_values("ArrDelay")["Airline"]
+    }
+)
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -129,8 +140,19 @@ with tab3:
 
     airport_delay["DelayHours"] = airport_delay["DepDelay"] / 60
 
-    fig = px.bar(airport_delay, x="DelayHours", y="Origin", orientation='h',
-                 labels={"DelayHours": "Horas de retraso acumulado", "Origin": "Aeropuerto"})
+    fig = px.bar(
+    airport_delay.sort_values("DelayHours"),
+    x="DelayHours",
+    y="Origin",
+    orientation="h",
+    labels={
+        "DelayHours": "Horas de retraso acumulado",
+        "Origin": "Aeropuerto"
+    },
+    category_orders={
+        "Origin": airport_delay.sort_values("DelayHours")["Origin"]
+    }
+)
 
     st.plotly_chart(fig, use_container_width=True)
 
@@ -149,8 +171,19 @@ with tab4:
     cancel = df.groupby("Airline")["Cancelled"].mean().reset_index()
     cancel["Cancelled"] *= 100
 
-    fig = px.bar(cancel, x="Cancelled", y="Airline", orientation='h',
-                 labels={"Cancelled": "% cancelaciones", "Airline": "Aerolínea"})
+    fig = px.bar(
+    cancel.sort_values("Cancelled"),
+    x="Cancelled",
+    y="Airline",
+    orientation="h",
+    labels={
+        "Cancelled": "% cancelaciones",
+        "Airline": "Aerolínea"
+    },
+    category_orders={
+        "Airline": cancel.sort_values("Cancelled")["Airline"]
+    }
+)
 
     st.plotly_chart(fig, use_container_width=True)
 
