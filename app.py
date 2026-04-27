@@ -92,7 +92,7 @@ with tab1:
 # TAB 2
 # =====================================================================
 with tab2:
-    st.header("✈️ Análisis de Puntualidad por Aerolínea")
+    st.header("Análisis de Puntualidad por Aerolínea")
     df = fact.merge(dims["aerolinea"], on="dim_aerolinea_id", how="inner")
     df = df.rename(columns={"ArrDelayMinutes": "ArrDelay"})
     df = df.merge(dims["origen"], on="dim_origen_id", how="inner")
