@@ -6,7 +6,7 @@ import glob
 st.set_page_config(page_title="Vuelos", layout="wide", page_icon="✈️")
 
 BASE_PATH = "datamart"
-SAMPLE_SIZE = 5000000
+SAMPLE_SIZE = 500000
 
 # ----------------------- CARGA -----------------------------
 @st.cache_data
