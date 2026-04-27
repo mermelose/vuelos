@@ -102,7 +102,7 @@ with tab2:
 
     airline_delay = df.groupby("Airline")["ArrDelay"].mean().reset_index()
 
-    order = airline_delay.sort_values("ArrDelay")["Airline"].tolist()
+    order = airline_delay.sort_values("ArrDelay")["Airline"].tolist()[::-1]
 
     fig = px.bar(
         airline_delay.sort_values("ArrDelay"),
@@ -140,7 +140,7 @@ with tab3:
 
     airport_delay["DelayHours"] = airport_delay["DepDelay"] / 60
 
-    order = airport_delay.sort_values("DelayHours")["Origin"].tolist()
+    order = airport_delay.sort_values("DelayHours")["Origin"].tolist()[::-1]
 
     fig = px.bar(
         airport_delay.sort_values("DelayHours"),
@@ -170,7 +170,7 @@ with tab4:
     cancel = df.groupby("Airline")["Cancelled"].mean().reset_index()
     cancel["Cancelled"] *= 100
 
-    order = cancel.sort_values("Cancelled")["Airline"].tolist()
+    order = cancel.sort_values("Cancelled")["Airline"].tolist()[::-1]
 
     fig = px.bar(
         cancel.sort_values("Cancelled"),
