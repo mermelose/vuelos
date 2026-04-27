@@ -76,13 +76,13 @@ Claves:
 
 ### Dimensiones
 
-dim_aerolinea
-dim_avion
-dim_destino
-dim_fecha
-dim_hora
-dim_origen
-dim_ruta
+dim_aerolinea,
+dim_avion,
+dim_destino,
+dim_fecha,
+dim_hora,
+dim_origen,
+dim_ruta,
 dim_vuelo
 
 Cada dimensión contiene atributos descriptivos y su clave.
