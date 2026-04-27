@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
+import plotly.express as px
 import glob
 
 st.set_page_config(page_title="✈️ Vuela Alto Fabo", layout="wide", page_icon="✈️")
@@ -102,16 +102,10 @@ with tab2:
 
     airline_delay = df.groupby("Airline")["ArrDelay"].mean().reset_index()
 
-    st.altair_chart(
-        alt.Chart(airline_delay)
-        .mark_bar()
-        .encode(
-            x=alt.X("ArrDelay", title="Retraso promedio llegada (min)"),
-            y=alt.Y("Airline", sort="-x", title="Aerolínea"),
-            tooltip=["Airline", alt.Tooltip("ArrDelay", format=".1f")]
-        ),
-        use_container_width=True
-    )
+    fig = px.bar(airline_delay, x="ArrDelay", y="Airline", orientation='h',
+                 labels={"ArrDelay": "Retraso promedio llegada (min)", "Airline": "Aerolínea"})
+
+    st.plotly_chart(fig, use_container_width=True)
 
 # =====================================================================
 # TAB 3
@@ -135,16 +129,10 @@ with tab3:
 
     airport_delay["DelayHours"] = airport_delay["DepDelay"] / 60
 
-    st.altair_chart(
-        alt.Chart(airport_delay)
-        .mark_bar()
-        .encode(
-            x=alt.X("DelayHours", title="Horas de retraso acumulado"),
-            y=alt.Y("Origin", sort="-x", title="Aeropuerto"),
-            tooltip=["Origin", alt.Tooltip("DelayHours", format=".1f")]
-        ),
-        use_container_width=True
-    )
+    fig = px.bar(airport_delay, x="DelayHours", y="Origin", orientation='h',
+                 labels={"DelayHours": "Horas de retraso acumulado", "Origin": "Aeropuerto"})
+
+    st.plotly_chart(fig, use_container_width=True)
 
 # =====================================================================
 # TAB 4
@@ -161,16 +149,10 @@ with tab4:
     cancel = df.groupby("Airline")["Cancelled"].mean().reset_index()
     cancel["Cancelled"] *= 100
 
-    st.altair_chart(
-        alt.Chart(cancel)
-        .mark_bar()
-        .encode(
-            x=alt.X("Cancelled", title="% cancelaciones"),
-            y=alt.Y("Airline", sort="-x", title="Aerolínea"),
-            tooltip=["Airline", alt.Tooltip("Cancelled", format=".1f")]
-        ),
-        use_container_width=True
-    )
+    fig = px.bar(cancel, x="Cancelled", y="Airline", orientation='h',
+                 labels={"Cancelled": "% cancelaciones", "Airline": "Aerolínea"})
+
+    st.plotly_chart(fig, use_container_width=True)
 
     df["Affected"] = (
         (df["ArrDelay"] > 15) |
