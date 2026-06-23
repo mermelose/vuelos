@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Delay Analytics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #1f2933;
+      --muted: #64748b;
+      --border: #d8dee7;
+      --primary: #1f4e79;
+      --primary-soft: rgba(31, 78, 121, 0.12);
+      --success: #2f6f4e;
+      --danger: #9f3a38;
+      --warning: #9a6a16;
+      --shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container { max-width: 1360px; margin: 0 auto; padding: 1rem; }
+
+    .header {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 6px solid var(--primary);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 1.25rem 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .header h1 { color: var(--primary); font-size: clamp(1.45rem, 2.5vw, 2.15rem); }
+    .header p { color: var(--muted); margin-top: 0.35rem; font-size: 0.95rem; }
+
+    .filters {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .filters h2 { color: var(--primary); font-size: 1.05rem; margin-bottom: 0.85rem; }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.8rem;
+      align-items: end;
+    }
+
+    label { display: block; font-size: 0.82rem; color: #344054; font-weight: 700; margin-bottom: 0.35rem; }
+    select, button {
+      width: 100%;
+      min-height: 39px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.9rem;
+    }
+
+    select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    button { cursor: pointer; font-weight: 800; }
+    .primary-button { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .secondary-button { background: #fff; color: var(--primary); border-color: var(--primary); }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-top: 0.8rem;
+      min-height: 1.2rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.45rem;
+      background: #e8edf3;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.35rem;
+      margin-bottom: 1rem;
+      position: sticky;
+      top: 0.5rem;
+      z-index: 10;
+    }
+
+    .tab-button {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 9px;
+    }
+
+    .tab-button.active {
+      background: var(--card);
+      color: var(--primary);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--primary);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+    }
+
+    .kpi-card.good { border-left-color: var(--success); }
+    .kpi-card.warn { border-left-color: var(--warning); }
+    .kpi-card.bad { border-left-color: var(--danger); }
+    .kpi-title { font-size: 0.8rem; color: var(--muted); font-weight: 750; margin-bottom: 0.35rem; }
+    .kpi-value { font-size: 1.55rem; font-weight: 850; color: var(--text); }
+    .kpi-note { margin-top: 0.35rem; color: var(--muted); font-size: 0.78rem; }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    .card h3 { color: var(--primary); font-size: 1.02rem; margin-bottom: 0.2rem; }
+    .card-note { color: var(--muted); font-size: 0.8rem; margin-bottom: 0.8rem; }
+    .chart-wrap { height: 390px; }
+    .chart-wrap.small { height: 320px; }
+    canvas { width: 100% !important; height: 100% !important; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; background: #fff; }
+    th, td { padding: 0.75rem 0.85rem; border-top: 1px solid #e5e7eb; text-align: left; font-size: 0.84rem; }
+    th { background: #eef2f6; color: #344054; font-weight: 800; border-top: none; }
+    tbody tr:hover { background: #f8fafc; }
+
+    /* ── Predicción ── */
+    .pred-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.2rem;
+    }
+    .pred-grid input, .pred-grid select {
+      width: 100%;
+      min-height: 39px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.9rem;
+    }
+    .pred-grid input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    .pred-result {
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: none;
+      margin-top: 1rem;
+      border: 2px solid;
+    }
+    .pred-result.on-time  { background: #edfaf2; border-color: var(--success); color: var(--success); }
+    .pred-result.delayed  { background: #fdf2f2; border-color: var(--danger);  color: var(--danger);  }
+    .pred-result.loading  { background: #f0f4ff; border-color: var(--primary); color: var(--primary); }
+    .pred-result.error    { background: #fff8e1; border-color: var(--warning); color: var(--warning); }
+    .ngrok-row { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+    .ngrok-row input { flex: 1; min-height: 39px; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.88rem; }
+    .ngrok-row button { white-space: nowrap; min-width: 110px; }
+
+    @media (max-width: 760px) {
+      .container { padding: 0.65rem; }
+      .tabs { overflow-x: auto; }
+      .tab-button { min-width: 135px; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .chart-wrap { height: 300px; }
+      .kpi-value { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Flight Delay Analytics Dashboard</h1>
+      <p>Dashboard operacional para analizar puntualidad, retrasos, cancelaciones, aeropuertos críticos y rutas de riesgo.</p>
+    </header>
+
+    <section class="filters">
+      <h2>Filtros</h2>
+      <div class="filter-grid">
+        <div>
+          <label for="filtroAnio">Año</label>
+          <select id="filtroAnio"><option value="">Todos</option></select>
+        </div>
+        <div>
+          <label for="filtroMes">Mes</label>
+          <select id="filtroMes"><option value="">Todos</option></select>
+        </div>
+        <div>
+          <label for="filtroAerolinea">Aerolínea</label>
+          <select id="filtroAerolinea"><option value="">Todas</option></select>
+        </div>
+        <div>
+          <label for="filtroOrigen">Origen</label>
+          <select id="filtroOrigen"><option value="">Todos</option></select>
+        </div>
+        <div>
+          <label for="filtroDestino">Destino</label>
+          <select id="filtroDestino"><option value="">Todos</option></select>
+        </div>
+        <div>
+          <label for="filtroRuta">Ruta</label>
+          <select id="filtroRuta"><option value="">Todas</option></select>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="secondary-button" type="button" onclick="resetFilters()">Reset</button>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button class="primary-button" type="button" onclick="refreshDashboard()">Actualizar</button>
+        </div>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <nav class="tabs">
+      <button class="tab-button active" onclick="showTab('resumen')">Resumen</button>
+      <button class="tab-button" onclick="showTab('puntualidad')">Puntualidad</button>
+      <button class="tab-button" onclick="showTab('aeropuertos')">Aeropuertos</button>
+      <button class="tab-button" onclick="showTab('rutas')">Rutas y datos</button>
+      <button class="tab-button" onclick="showTab('prediccion')">Predicción</button>
+    </nav>
+
+    <section id="tab-resumen" class="tab-panel active">
+      <div id="kpiGrid" class="kpi-grid"></div>
+      <div class="charts-grid">
+        <div class="card">
+          <h3>Distribución de vuelos</h3>
+          <div class="card-note">Puntuales, retrasados, cancelados y desviados.</div>
+          <div class="chart-wrap small"><canvas id="chartDistribucion"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Evolución mensual de retrasos</h3>
+          <div class="card-note">Promedio mensual de retraso de salida y llegada.</div>
+          <div class="chart-wrap small"><canvas id="chartMensual"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-puntualidad" class="tab-panel">
+      <div class="card">
+        <h3>Retraso promedio de llegada por aerolínea</h3>
+        <div class="card-note">Aerolíneas ordenadas por mayor retraso promedio de llegada.</div>
+        <div class="chart-wrap"><canvas id="chartAerolinea"></canvas></div>
+      </div>
+    </section>
+
+    <section id="tab-aeropuertos" class="tab-panel">
+      <div class="charts-grid">
+        <div class="card">
+          <h3>Aeropuertos críticos</h3>
+          <div class="card-note">Aeropuertos de origen con mayor retraso acumulado de salida.</div>
+          <div class="chart-wrap"><canvas id="chartAeropuertos"></canvas></div>
+        </div>
+        <div class="card">
+          <h3>Cancelaciones por aerolínea</h3>
+          <div class="card-note">Porcentaje de vuelos cancelados por aerolínea.</div>
+          <div class="chart-wrap"><canvas id="chartCancelaciones"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-rutas" class="tab-panel">
+      <div class="card" style="margin-bottom: 1rem;">
+        <h3>Rutas críticas</h3>
+        <div class="card-note">Rutas origen-destino con más horas de retraso acumulado.</div>
+        <div class="chart-wrap"><canvas id="chartRutas"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Tabla de vuelos filtrados</h3>
+        <div class="card-note">Muestra compacta de registros según los filtros activos.</div>
+        <div id="tablaVuelos" class="table-wrap"></div>
+      </div>
+    </section>
+    <section id="tab-prediccion" class="tab-panel">
+      <div class="card">
+        <h3>Predicción de demora de salida</h3>
+        <div class="card-note">Ingresa los datos del vuelo. El modelo Random Forest correrá en Colab vía ngrok.</div>
+
+        <div class="pred-grid">
+          <div>
+            <label>Aerolínea (Airline)</label>
+            <input id="p_Airline" type="text" placeholder="WN" value="WN" />
+          </div>
+          <div>
+            <label>Origen (Origin)</label>
+            <input id="p_Origin" type="text" placeholder="ATL" value="ATL" />
+          </div>
+          <div>
+            <label>Destino (Dest)</label>
+            <input id="p_Dest" type="text" placeholder="LAX" value="LAX" />
+          </div>
+          <div>
+            <label>Distancia (millas)</label>
+            <input id="p_Distance" type="number" placeholder="1200" value="1200" />
+          </div>
+          <div>
+            <label>Día semana (1=Lun … 7=Dom)</label>
+            <input id="p_DayOfWeek" type="number" min="1" max="7" value="3" />
+          </div>
+          <div>
+            <label>Mes</label>
+            <input id="p_Month" type="number" min="1" max="12" value="7" />
+          </div>
+          <div>
+            <label>Año</label>
+            <input id="p_Year" type="number" value="2023" />
+          </div>
+          <div>
+            <label>Hora salida programada (HHMM)</label>
+            <input id="p_CRSDepTime" type="number" placeholder="800" value="800" />
+          </div>
+          <div>
+            <label>Hora llegada programada (HHMM)</label>
+            <input id="p_CRSArrTime" type="number" placeholder="1100" value="1100" />
+          </div>
+          <div>
+            <label>Hora salida (DepHour 0-23)</label>
+            <input id="p_DepHour" type="number" min="0" max="23" value="8" />
+          </div>
+          <div>
+            <label>Bloque salida (DepTimeBlk)</label>
+            <input id="p_DepTimeBlk" type="text" placeholder="0800-0859" value="0800-0859" />
+          </div>
+        </div>
+
+        <button class="primary-button" style="width:auto;padding:0.6rem 2rem;" onclick="runPredict()">
+          Predecir demora
+        </button>
+
+        <div id="predResult" class="pred-result"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API = `${window.location.protocol}//${window.location.hostname}:8000`;
+    const charts = {};
+
+    const SELECT_MAP = {
+      filtroAnio: 'anio',
+      filtroMes: 'mes',
+      filtroAerolinea: 'aerolinea',
+      filtroOrigen: 'origen',
+      filtroDestino: 'destino',
+      filtroRuta: 'ruta'
+    };
+
+    function setStatus(message) {
+      document.getElementById('status').textContent = message || '';
+    }
+
+    function selectedFilters() {
+      const filters = {};
+      Object.entries(SELECT_MAP).forEach(([selectId, field]) => {
+        const value = document.getElementById(selectId)?.value;
+        if (value !== undefined && value !== null && value !== '') {
+          filters[field] = value;
+        }
+      });
+      return filters;
+    }
+
+    function fillSelect(id, items, defaultLabel) {
+      const select = document.getElementById(id);
+      const current = select.value;
+      select.innerHTML = `<option value="">${defaultLabel}</option>`;
+      (items || []).forEach(item => {
+        const value = Array.isArray(item) ? item[0] : item;
+        const label = Array.isArray(item) ? item[1] : item;
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        select.appendChild(option);
+      });
+      if ([...select.options].some(opt => opt.value === current)) {
+        select.value = current;
+      }
+    }
+
+    async function getJson(path) {
+      const res = await fetch(`${API}${path}`);
+      if (!res.ok) throw new Error(`${path} respondió ${res.status}`);
+      return res.json();
+    }
+
+    async function postJson(path, body) {
+      const res = await fetch(`${API}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+      });
+      if (!res.ok) throw new Error(`${path} respondió ${res.status}`);
+      return res.json();
+    }
+
+    async function loadFilters() {
+      setStatus('Cargando filtros...');
+      const data = await getJson('/api/filters');
+      fillSelect('filtroAnio', data.years, 'Todos');
+      fillSelect('filtroMes', data.months, 'Todos');
+      fillSelect('filtroAerolinea', data.airlines, 'Todas');
+      fillSelect('filtroOrigen', data.origins, 'Todos');
+      fillSelect('filtroDestino', data.destinations, 'Todos');
+      fillSelect('filtroRuta', data.routes, 'Todas');
+      setStatus('');
+    }
+
+    async function refreshDependentFilters() {
+      const filters = selectedFilters();
+      const data = await postJson('/api/filters', filters);
+      fillSelect('filtroAerolinea', data.airlines, 'Todas');
+      fillSelect('filtroOrigen', data.origins, 'Todos');
+      fillSelect('filtroDestino', data.destinations, 'Todos');
+      fillSelect('filtroRuta', data.routes, 'Todas');
+    }
+
+    function resetFilters() {
+      Object.keys(SELECT_MAP).forEach(id => {
+        const select = document.getElementById(id);
+        if (select) select.value = '';
+      });
+      refreshDashboard();
+    }
+
+    function showTab(name) {
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase().includes(name));
+      });
+      document.querySelectorAll('.tab-panel').forEach(panel => {
+        panel.classList.toggle('active', panel.id === `tab-${name}`);
+      });
+      setTimeout(() => Object.values(charts).forEach(chart => chart?.resize?.()), 80);
+    }
+
+    function formatNumber(value, decimals = 1) {
+      const n = Number(value || 0);
+      return n.toLocaleString('es-PE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    function renderKPIs(kpi) {
+      const cards = [
+        { title: 'Total vuelos', value: Number(kpi.total_vuelos || 0).toLocaleString('es-PE'), note: 'Registros filtrados' },
+        { title: 'Retraso salida promedio', value: `${formatNumber(kpi.retraso_salida_promedio)} min`, note: 'DepDelayMinutes' },
+        { title: 'Retraso llegada promedio', value: `${formatNumber(kpi.retraso_llegada_promedio)} min`, note: 'ArrDelayMinutes' },
+        { title: 'OTP', value: `${formatNumber(kpi.otp)} %`, note: 'Llegada ≤ 15 min', cls: Number(kpi.otp) >= 80 ? 'good' : 'warn' },
+        { title: 'Cancelaciones', value: `${formatNumber(kpi.cancelaciones_pct)} %`, note: 'Cancelled promedio', cls: Number(kpi.cancelaciones_pct) > 5 ? 'bad' : '' },
+        { title: 'Vuelos afectados', value: `${formatNumber(kpi.vuelos_afectados_pct)} %`, note: 'Retraso >15, cancelado o desviado', cls: Number(kpi.vuelos_afectados_pct) > 25 ? 'bad' : 'warn' },
+        { title: 'Retraso salida acumulado', value: `${formatNumber(kpi.retraso_salida_acumulado_horas)} h`, note: 'Suma DepDelayMinutes / 60' },
+        { title: 'Retraso llegada acumulado', value: `${formatNumber(kpi.retraso_llegada_acumulado_horas)} h`, note: 'Suma ArrDelayMinutes / 60' }
+      ];
+
+      document.getElementById('kpiGrid').innerHTML = cards.map(card => `
+        <div class="kpi-card ${card.cls || ''}">
+          <div class="kpi-title">${card.title}</div>
+          <div class="kpi-value">${card.value}</div>
+          <div class="kpi-note">${card.note}</div>
+        </div>
+      `).join('');
+    }
+
+    function destroyChart(id) {
+      if (charts[id]) {
+        charts[id].destroy();
+        delete charts[id];
+      }
+    }
+
+    function horizontalBar(id, labels, data, label) {
+      destroyChart(id);
+      charts[id] = new Chart(document.getElementById(id), {
+        type: 'bar',
+        data: { labels, datasets: [{ label, data }] },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } }
+        }
+      });
+    }
+
+    function lineChart(id, chartData) {
+      destroyChart(id);
+      charts[id] = new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: chartData.labels || [],
+          datasets: (chartData.datasets || []).map(ds => ({
+            label: ds.label,
+            data: ds.data,
+            tension: 0.25,
+            fill: false
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    function doughnutChart(id, labels, data) {
+      destroyChart(id);
+      charts[id] = new Chart(document.getElementById(id), {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
+    function renderTable(rows) {
+      const container = document.getElementById('tablaVuelos');
+      if (!rows || !rows.length) {
+        container.innerHTML = '<div style="padding: 1rem; color: #64748b;">No hay datos para los filtros seleccionados.</div>';
+        return;
+      }
+      const columns = Object.keys(rows[0]);
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>${columns.map(col => `<th>${escapeHtml(col)}</th>`).join('')}</tr>
+          </thead>
+          <tbody>
+            ${rows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(row[col])}</td>`).join('')}</tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    async function refreshDashboard() {
+      const filters = selectedFilters();
+      try {
+        setStatus('Actualizando dashboard...');
+        const [kpi, airline, airports, cancellations, monthly, routes, distribution, table] = await Promise.all([
+          postJson('/api/kpis', filters),
+          postJson('/api/retraso-aerolinea', filters),
+          postJson('/api/aeropuertos-criticos', { ...filters, limit: 15 }),
+          postJson('/api/cancelaciones-aerolinea', filters),
+          postJson('/api/retraso-mensual', filters),
+          postJson('/api/rutas-criticas', { ...filters, limit: 15 }),
+          postJson('/api/distribucion-vuelos', filters),
+          postJson('/api/tabla-vuelos', { ...filters, limit: 100 })
+        ]);
+
+        renderKPIs(kpi);
+        horizontalBar('chartAerolinea', airline.labels || [], airline.data || [], 'Retraso promedio llegada (min)');
+        horizontalBar('chartAeropuertos', airports.labels || [], airports.data || [], 'Horas de retraso acumulado');
+        horizontalBar('chartCancelaciones', cancellations.labels || [], cancellations.data || [], 'Cancelaciones (%)');
+        horizontalBar('chartRutas', routes.labels || [], routes.data || [], 'Horas de retraso acumulado');
+        lineChart('chartMensual', monthly);
+        doughnutChart('chartDistribucion', distribution.labels || [], distribution.data || []);
+        renderTable(table.rows || []);
+
+        setStatus(`Dashboard actualizado. Filtros activos: ${Object.keys(filters).length || 'ninguno'}.`);
+      } catch (error) {
+        console.error(error);
+        setStatus(`Error: ${error.message}. Verifica que FastAPI esté corriendo en ${API}`);
+      }
+    }
+
+    function bindFilterEvents() {
+      Object.keys(SELECT_MAP).forEach(id => {
+        document.getElementById(id).addEventListener('change', async () => {
+          try {
+            if (['filtroAnio', 'filtroMes'].includes(id)) await refreshDependentFilters();
+            await refreshDashboard();
+          } catch (error) {
+            console.error(error);
+            setStatus(`Error actualizando filtros: ${error.message}`);
+          }
+        });
+      });
+    }
+
+    const NGROK_URL = "https://tightness-backslid-proud.ngrok-free.dev/";
+
+    async function updateNgrokUrl() {
+      const url = document.getElementById('ngrokUrl').value.trim();
+      if (!url) return alert('Ingresa una URL válida');
+      try {
+        await postJson('/api/predict/ngrok-url', { url });
+        alert('URL actualizada: ' + url);
+      } catch(e) {
+        alert('Error actualizando URL: ' + e.message);
+      }
+    }
+
+    async function runPredict() {
+      const result = document.getElementById('predResult');
+      result.className = 'pred-result loading';
+      result.style.display = 'block';
+      result.textContent = ' Corriendo predicción...';
+
+      const body = {
+        Airline:    document.getElementById('p_Airline').value.trim(),
+        Origin:     document.getElementById('p_Origin').value.trim(),
+        Dest:       document.getElementById('p_Dest').value.trim(),
+        Distance:   parseFloat(document.getElementById('p_Distance').value),
+        DayOfWeek:  parseInt(document.getElementById('p_DayOfWeek').value),
+        Month:      parseInt(document.getElementById('p_Month').value),
+        Year:       parseInt(document.getElementById('p_Year').value),
+        CRSDepTime: parseInt(document.getElementById('p_CRSDepTime').value),
+        CRSArrTime: parseInt(document.getElementById('p_CRSArrTime').value),
+        DepHour:    parseInt(document.getElementById('p_DepHour').value),
+        DepTimeBlk: document.getElementById('p_DepTimeBlk').value.trim(),
+        // Valores por defecto fijados en el servidor (Colab):
+        // ArrHour y ArrTimeBlk se setean automáticamente
+      };
+
+      try {
+        const data = await postJson('/api/predict', body);
+        const pred = data.prediction;
+        const prob = data.probability;
+        const pctDelay = prob ? (prob[1] * 100).toFixed(1) : '?';
+        const pctOk    = prob ? (prob[0] * 100).toFixed(1) : '?';
+
+        if (pred === 1 || pred === 1.0) {
+          result.className = 'pred-result delayed';
+          result.innerHTML = `DEMORADO &nbsp;|&nbsp`;
+        } else {
+          result.className = 'pred-result on-time';
+          result.innerHTML = `A TIEMPO &nbsp;&nbsp`;
+        }
+      } catch(e) {
+        result.className = 'pred-result error';
+        result.textContent = 'Error: ' + e.message + '. ¿Está corriendo el Colab y la URL ngrok es correcta?';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        bindFilterEvents();
+        await loadFilters();
+        await refreshDashboard();
+      } catch (error) {
+        console.error(error);
+        setStatus(`Error inicializando dashboard: ${error.message}. Verifica que FastAPI esté corriendo en ${API}`);
+      }
+    });
+  </script>
+</body>
+</html>
