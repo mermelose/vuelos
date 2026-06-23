@@ -1,3 +1,10 @@
 streamlit
 pandas
+pyodbc
 plotly
+httpx
+fastapi
+requests
+typing
+pandas
+subprocess
