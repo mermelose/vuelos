@@ -1,16 +1,19 @@
 # 🚀 Vuelos Big Data
 
-Esta aplicación es el motor centralizado de una plataforma de **Business Intelligence (BI)**. Integra una capa de datos (**Datamart**), un modelo analítico predictivo entrenado en **Apache Spark (MLlib)** y una **API REST (FastAPI)** que unifica ambos mundos para servir métricas y predicciones en tiempo real a los tableros de visualización.
+Este proyecto es una aplicación integral de **Business Intelligence (BI)** y analítica predictiva para la gestión y análisis de datos de vuelos. El sistema implementa una arquitectura completa de 4 capas: procesamiento distribuido en **Apache Spark**, almacenamiento en un **Datamart** relacional, una **API REST (FastAPI)** y una **Interfaz Web** interactiva para el usuario final.
 
-## 📋 Arquitectura del Proyecto (4 Capas)
+---
 
-El sistema está estructurado bajo una arquitectura limpia dividida en las siguientes capas:
+## 📋 Arquitectura del Sistema (4 Capas)
 
-1. **Capa de Presentación (Página Web / Frontend):** Interfaz web y dashboards interactivos donde el usuario final visualiza los reportes de BI y consume las predicciones en tiempo real.
-2. **Capa de Servicio (API REST):** Construida con **FastAPI**, actúa como el cerebro del sistema. Conecta la interfaz web con el Datamart y ejecuta el modelo de Machine Learning.
-3. **Capa Analítica (Machine Learning):** Modelo predictivo nativo de **Spark ML** alojado directamente en la API para realizar scoring/predicciones al vuelo.
-4. **Capa de Datos (Datamart):** Base de datos relacional optimizada para consultas analíticas agregadas que alimenta tanto a la interfaz web como al reentrenamiento del modelo.
+La plataforma está estructurada en base a los siguientes componentes distribuidos en el repositorio:
 
+1. **Capa de Presentación (`frontend/`):** Interfaz web basada en `index.html` que consume los endpoints de la API para mostrar tableros analíticos, reportes de BI y permitir a los usuarios consultar predicciones de vuelos interactuando con formularios.
+2. **Capa de Servicio (`backend/`):** API REST construida con **FastAPI**. Contiene la lógica de negocio (`services.py`), los contratos de datos (`schemas.py`), la conexión a la base de datos (`database.py`) y expone los puntos de acceso en `main.py`.
+3. **Capa Analítica / ML (`modelo_vuelos_rf/`):** Modelo predictivo de tipo **Random Forest** entrenado con Spark ML. La API levanta una sesión local de PySpark para cargar los stages y metadata de este modelo, permitiendo realizar predicciones en tiempo real.
+4. **Capa de Datos (`datamart/`):** Base de datos analítica diseñada bajo un modelo dimensional en estrella (Tablas de hechos `fact_vuelos` y dimensiones como `dim_aerolinea`, `dim_destino`, `dim_ruta`, etc.) optimizada para consultas de BI de alta velocidad.
+
+---
 
 ## 🛠️ Requisitos Previos
 
@@ -50,58 +53,66 @@ Antes de ejecutar la aplicación, asegúrate de tener configurado:
 
 *(Asegúrate de que tu archivo `requirements.txt` incluya al menos: `pyspark`, `fastapi` y `uvicorn`)*
 
----
+### 2. Pipeline de Datos y Reentrenamiento del Modelo (Opcional)
 
-## ⚡ Ejecutar la API
+Si deseas reprocesar los datos en la nube o localmente para actualizar el modelo, cuentas con los siguientes notebooks y scripts en la raíz:
 
-Para iniciar el servidor local de FastAPI y empezar a recibir peticiones de predicción, ejecuta:
+* `datamart_flights_databricks_orc.ipynb`: Notebook para procesamiento a gran escala en Databricks usando formato ORC.
+* `datamart_flights_local_pandas.ipynb`: Procesamiento alternativo local usando Pandas.
+* `ml_vuelos_spark_cluster_final.py`: Script principal de PySpark que entrena el Random Forest y exporta la carpeta `modelo_vuelos_rf/`.
+
+### 3. Levantar el Backend (FastAPI + SparkML)
+
+Para iniciar el servidor de la API que conecta al Datamart y monta el modelo predictivo, ejecuta desde la raíz:
 
 ```bash
-uvicorn src.app.main:app --reload
+uvicorn backend.main:app --reload
 
 ```
 
-* **API local disponible en:** `http://127.0.0.1:8000`
-* **Documentación interactiva (Swagger UI):** `http://127.0.0.1:8000/docs`
+* **Documentación interactiva de Endpoints:** `http://127.0.0.1:8000/docs`
+
+### 4. Abrir la Capa de Presentación (Frontend)
+
+Navega a la carpeta `frontend/` y abre el archivo `index.html` en cualquier navegador web moderno, o configúralo para que sea servido como archivos estáticos a través de la misma API de FastAPI.
 
 ---
 
-## 🧠 Estructura de los Endpoints
+## 🔌 Endpoints Principales de la API
 
-### `POST /predict`
-
-Envía los datos de entrada para obtener la predicción generada por el modelo de Spark.
-
-* **Cuerpo de la petición (JSON de ejemplo):**
-
-```json
-    {
-      "features": [5.1, 3.5, 1.4, 0.2]
-    }
-    ```
-
-* **Respuesta del servidor (200 OK):**
-```json
-    {
-      "prediction": 1.0
-    }
-    ```
+* **`GET /flights/analytics`:** Realiza consultas agregadas al Datamart (`fact_vuelos` unidos a las dimensiones) para extraer métricas de BI y alimentar los gráficos del frontend.
+* **`POST /predict`:** Recibe los datos de un vuelo desde la interfaz web, los vectoriza y utiliza la sesión de PySpark para calcular la predicción utilizando el modelo Random Forest alojado en `modelo_vuelos_rf/`.
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Estructura Completa del Repositorio
 
 ```text
-├── models/
-│   └── mi_modelo_spark/  # Carpeta del modelo exportado por Spark ML
-├── src/
-│   ├── app/
-│   │   └── main.py       # API REST con FastAPI (Carga el modelo y predice)
-│   └── train.py          # Script de PySpark para entrenar y guardar el modelo
-├── requirements.txt      # Librerías de Python requeridas
-└── README.md             # Este archivo informativo
+├── backend/                  # Código fuente de la API REST (FastAPI)
+│   ├── database.py           # Configuración de la conexión al Datamart SQL
+│   ├── main.py               # Endpoints y orquestación principal de la API
+│   ├── schemas.py            # Modelos de validación Pydantic
+│   └── services.py           # Lógica analítica y de negocio
+├── datamart/                 # Estructura del Datamart dimensional de vuelos
+│   ├── fact_vuelos/          # Tabla de hechos principal
+│   ├── dim_aerolinea/        # Dimensión de aerolíneas
+│   ├── dim_avion/            # Dimensión de aeronaves
+│   ├── dim_destino/          # Dimensión de destinos
+│   ├── dim_fecha/            # Dimensión temporal (Fechas)
+│   ├── dim_hora/             # Dimensión temporal (Horas)
+│   ├── dim_origen/           # Dimensión de orígenes
+│   └── dim_ruta/             # Dimensión de rutas aéreas
+├── frontend/                 # Capa de presentación (Página Web)
+│   └── index.html            # Dashboard e interfaz web de BI
+├── modelo_vuelos_rf/         # Modelo Random Forest guardado por Spark ML
+│   ├── metadata/             # Metadatos del entrenamiento
+│   └── stages/               # Fases y transformaciones del Pipeline de Spark
+├── datamart_flights_databricks_orc.ipynb  # ETL y procesamiento en Databricks
+├── datamart_flights_local_pandas.ipynb    # ETL alternativo local con Pandas
+├── ml_vuelos_spark_cluster_final.py       # Script original de entrenamiento Spark
+├── requirements.txt          # Dependencias del proyecto (pyspark, fastapi, uvicorn, etc.)
+└── README.md                 # Este archivo descriptivo
 
-```
 
 ---
 
