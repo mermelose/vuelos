@@ -31,7 +31,7 @@ Antes de ejecutar la aplicación, asegúrate de tener configurado:
    ```bash
    git clone https://github.com/mermelose/vuelos.git
 
-```
+   ```
 
 2. **Crear y activar un entorno virtual:**
 
@@ -112,9 +112,7 @@ Navega a la carpeta `frontend/` y abre el archivo `index.html` en cualquier nave
 ├── ml_vuelos_spark_cluster_final.py       # Script original de entrenamiento Spark
 ├── requirements.txt          # Dependencias del proyecto (pyspark, fastapi, uvicorn, etc.)
 └── README.md                 # Este archivo descriptivo
-
-
----
+```
 
 ## ✒️ Autor
 
@@ -122,6 +120,5 @@ Navega a la carpeta `frontend/` y abre el archivo `index.html` en cualquier nave
 * **Cynthia Zhou** - *Desarrollo e Implementación*
 * **Fabrizio Montalvo** - *Desarrollo e Implementación*
 * **Maricarmen Mendoza** - *Desarrollo e Implementación* 
-```
 
-```
+
