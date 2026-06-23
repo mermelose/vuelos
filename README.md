@@ -1,209 +1,116 @@
-# ✈️ Flight Delay Analytics Datamart
+# 🚀 Vuelos Big Data
 
-## 1. Descripción
+Esta aplicación es el motor centralizado de una plataforma de **Business Intelligence (BI)**. Integra una capa de datos (**Datamart**), un modelo analítico predictivo entrenado en **Apache Spark (MLlib)** y una **API REST (FastAPI)** que unifica ambos mundos para servir métricas y predicciones en tiempo real a los tableros de visualización.
 
-Este repositorio implementa un datamart dimensional basado en datos históricos de vuelos (2018 a 2022). Permite analizar puntualidad, retrasos, cancelaciones y desempeño operacional mediante un dashboard interactivo.
+## 📋 Arquitectura del Proyecto (4 Capas)
+
+El sistema está estructurado bajo una arquitectura limpia dividida en las siguientes capas:
+
+1. **Capa de Presentación (Página Web / Frontend):** Interfaz web y dashboards interactivos donde el usuario final visualiza los reportes de BI y consume las predicciones en tiempo real.
+2. **Capa de Servicio (API REST):** Construida con **FastAPI**, actúa como el cerebro del sistema. Conecta la interfaz web con el Datamart y ejecuta el modelo de Machine Learning.
+3. **Capa Analítica (Machine Learning):** Modelo predictivo nativo de **Spark ML** alojado directamente en la API para realizar scoring/predicciones al vuelo.
+4. **Capa de Datos (Datamart):** Base de datos relacional optimizada para consultas analíticas agregadas que alimenta tanto a la interfaz web como al reentrenamiento del modelo.
+
+
+## 🛠️ Requisitos Previos
+
+Antes de ejecutar la aplicación, asegúrate de tener configurado:
+
+* **Python 3.9 o superior**
+* **Java JDK 11 o 17** (Requerido para la ejecución de PySpark en la API).
+* **Acceso al Datamart:** Credenciales de la base de datos analítica.
+* **Navegador Web moderno** (para acceder a la interfaz de usuario).
 
 ---
+## 🚀 Instalación y Configuración
 
-## 2. Estructura del repositorio
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/mermelose/vuelos.git
 
 ```
-/
-├── app.py
-├── datamart_flights_databricks_orc.ipynb
-├── requirements.txt
-└── datamart/
-    ├── dim_aerolinea/dim_aerolinea.parquet
-    ├── dim_avion/dim_avion.parquet
-    ├── dim_destino/dim_destino.parquet
-    ├── dim_fecha/dim_fecha.parquet
-    ├── dim_hora/dim_hora.parquet
-    ├── dim_origen/dim_origen.parquet
-    ├── dim_ruta/dim_ruta.parquet
-    ├── dim_vuelo/dim_vuelo.parquet
-    └── fact_vuelos/fact_vuelos.parquet
-```
 
----
+2. **Crear y activar un entorno virtual:**
 
-## 3. Dataset
-
-Fuente: Flight Delay Dataset 2018–2022
-
-Archivos originales:
-
-* Combined_Flights_2018.parquet
-* Combined_Flights_2019.parquet
-* Combined_Flights_2020.parquet
-* Combined_Flights_2021.parquet
-* Combined_Flights_2022.parquet
-
-Acceso:
-https://drive.google.com/drive/folders/1CF7CDKkXqdKbD1jDnxES2CT8WT85z97C
-
----
-
-## 4. Modelo de datos
-
-Esquema estrella con una tabla de hechos y múltiples dimensiones.
-
-### Tabla de hechos
-
-fact_vuelos
-
-Métricas:
-
-* DepDelayMinutes
-* ArrDelayMinutes
-* AirTime
-* Distance
-* Cancelled
-* Diverted
-
-Claves:
-
-* dim_fecha_id
-* dim_hora_id
-* dim_avion_id
-* dim_vuelo_id
-* dim_origen_id
-* dim_destino_id
-* dim_ruta_id
-* dim_aerolinea_id
-
----
-
-### Dimensiones
-
-dim_aerolinea,
-dim_avion,
-dim_destino,
-dim_fecha,
-dim_hora,
-dim_origen,
-dim_ruta,
-dim_vuelo
-
-Cada dimensión contiene atributos descriptivos y su clave.
-
----
-
-## 5. Pipeline de datos
-
-Flujo:
-
-1. Ingesta
-2. Limpieza y transformación
-3. Modelado dimensional
-4. Almacenamiento en Parquet
-
----
-
-## 6. Dashboard
-
-Archivo: app.py
-Framework: Streamlit
-
-Tabs:
-
-* Resumen Ejecutivo
-* Puntualidad por aerolínea
-* Aeropuertos críticos
-* Cancelaciones y disrupciones
-
-KPIs:
-
-* OTP
-* Retraso promedio en minutos
-* Retraso acumulado en horas
-* Porcentaje de cancelaciones (%)
-* Porcentaje de vuelos afectados (%)
-
----
-
-## 7. Ejecución rápida
-
-Instalar dependencias:
+```bash
+   python -m venv venv
+   # En Windows:
+   venv\Scripts\activate
+   # En macOS/Linux:
+   source venv/bin/activate
 
 ```
-pip install -r requirements.txt
+
+3. **Instalar las dependencias requeridas:**
+
+```bash
+   pip install -r requirements.txt
+
 ```
 
-Ejecutar app:
+*(Asegúrate de que tu archivo `requirements.txt` incluya al menos: `pyspark`, `fastapi` y `uvicorn`)*
+
+---
+
+## ⚡ Ejecutar la API
+
+Para iniciar el servidor local de FastAPI y empezar a recibir peticiones de predicción, ejecuta:
+
+```bash
+uvicorn src.app.main:app --reload
 
 ```
-streamlit run app.py
+
+* **API local disponible en:** `http://127.0.0.1:8000`
+* **Documentación interactiva (Swagger UI):** `http://127.0.0.1:8000/docs`
+
+---
+
+## 🧠 Estructura de los Endpoints
+
+### `POST /predict`
+
+Envía los datos de entrada para obtener la predicción generada por el modelo de Spark.
+
+* **Cuerpo de la petición (JSON de ejemplo):**
+
+```json
+    {
+      "features": [5.1, 3.5, 1.4, 0.2]
+    }
+    ```
+
+* **Respuesta del servidor (200 OK):**
+```json
+    {
+      "prediction": 1.0
+    }
+    ```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```text
+├── models/
+│   └── mi_modelo_spark/  # Carpeta del modelo exportado por Spark ML
+├── src/
+│   ├── app/
+│   │   └── main.py       # API REST con FastAPI (Carga el modelo y predice)
+│   └── train.py          # Script de PySpark para entrenar y guardar el modelo
+├── requirements.txt      # Librerías de Python requeridas
+└── README.md             # Este archivo informativo
+
 ```
 
 ---
 
-## 8. Sección opcional: generación del datamart desde cero
+## ✒️ Autor
 
-Usa esta sección si no tienes la carpeta datamart creada.
-
-### Paso 1. Descargar dataset
-
-Descarga los archivos desde Google Drive:
-
-* Combined_Flights_2018.parquet
-* Combined_Flights_2019.parquet
-* Combined_Flights_2020.parquet
-* Combined_Flights_2021.parquet
-* Combined_Flights_2022.parquet
-
-Guárdalos en una carpeta local o en tu entorno de Databricks.
-
----
-
-### Paso 2. Ejecutar notebook en Databricks
-
-Archivo:
-datamart_flights_databricks_orc.ipynb
-
-Acciones:
-
-* Cargar los archivos Combined_Flights
-* Ejecutar limpieza y transformación
-* Construir dimensiones
-* Construir tabla de hechos
-* Exportar resultados en formato Parquet
-
-Salida esperada:
-
-```
-datamart/
+* **Paolo Salazar** - *Desarrollo e Implementación* 
+* **Cynthia Zhou** - *Desarrollo e Implementación*
+* **Fabrizio Montalvo** - *Desarrollo e Implementación*
+* **Maricarmen Mendoza** - *Desarrollo e Implementación* 
 ```
 
-con todas las tablas:
-
-* dimensiones
-* fact_vuelos particionada
-
----
-
-### Paso 3. Descargar datamart
-
-Desde Databricks:
-
-* Exportar la carpeta datamart
-* Copiarla al root del proyecto
-
-Estructura final requerida:
-
 ```
-/datamart/...
-```
-
----
-
-### Paso 4. Ejecutar aplicación
-
-Una vez que exista la carpeta datamart:
-
-```
-streamlit run app.py
-```
-
----
-
